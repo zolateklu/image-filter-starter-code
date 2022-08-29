@@ -37,13 +37,18 @@ import { filterImageFromURL, deleteLocalFiles } from './util/util';
     res.send("try GET /filteredimage?image_url={{}}")
   });
 
-  app.get('/filteredimage', async (req, res) => {
-    if (!req.query.image_url) {
-      return res.status(400).send('Image url is required')
+  app.get('/filteredimage', async (req: express.Request, res: express.Response) => {
+    try {
+      if (!req.query.image_url) {
+        return res.status(400).send('Image url is required')
+      }
+      const filtered_image: string = await filterImageFromURL(req.query.image_url)
+      return res.status(200).sendFile(filtered_image, () => {
+        deleteLocalFiles([filtered_image])
+      })
+    } catch (err) {
+      return res.status(422).send(err)
     }
-    const result = await filterImageFromURL(req.query.image_url)
-    res.status(200).sendFile(result)
-    // await deleteLocalFiles([result])
   })
 
   // Start the Server
